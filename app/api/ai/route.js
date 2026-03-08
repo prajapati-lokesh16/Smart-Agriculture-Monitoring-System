@@ -1,38 +1,52 @@
 import { NextResponse } from 'next/server';
 
-// POST /api/ai
 export async function POST(request) {
   try {
     const { message, context } = await request.json();
 
-    // build payload to AI model (Gemini/OpenAI)
+    // Gemini API URL (Google ka direct endpoint)
+    const apiKey = process.env.GEMINI_API_KEY;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    // Prompt build karna (Context + Message)
+    const systemPrompt = "You are an expert IoT agriculture assistant. Provide concise, actionable advice for the farmer based on incoming sensor data and questions.";
+    const userPrompt = context 
+      ? `Context (Sensor Data): ${JSON.stringify(context)}\n\nQuestion: ${message}`
+      : message;
+
     const body = {
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are an expert IoT agriculture assistant. Provide concise, actionable advice for the farmer based on incoming sensor data and questions.',
-        },
-        { role: 'user', content: message },
-      ],
-      // optionally include context for automated insights
-      ...(context && { context }),
+      contents: [{
+        parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
+      }]
     };
 
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    const resp = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(body),
     });
 
     const result = await resp.json();
-    return NextResponse.json(result);
+
+    // Gemini ka response structure OpenAI se alag hota hai, 
+    // hum use OpenAI ke format mein convert karke bhej rahe hain
+    const aiResponse = result.candidates[0].content.parts[0].text;
+
+    return NextResponse.json({
+      choices: [
+        {
+          message: {
+            content: aiResponse,
+          },
+        },
+      ],
+    });
   } catch (err) {
-    console.error('AI route error', err);
-    return NextResponse.json({ error: 'Failed to contact AI' }, { status: 500 });
+    console.error('Gemini API route error', err);
+    return NextResponse.json({ error: 'Failed to contact Gemini' }, { status: 500 });
   }
+}
+}
 }
