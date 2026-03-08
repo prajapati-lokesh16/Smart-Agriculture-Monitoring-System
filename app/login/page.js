@@ -12,14 +12,14 @@ export default function LoginPage() {
   const { login, user, resetPassword } = useAuth();
 
   if (user) {
-    router.push('/');
+    router.push('/dashboard');
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await login(email, password);
-      router.push('/');
+      router.push('/dashboard');
     } catch (err) {
       setError(err.message);
     }

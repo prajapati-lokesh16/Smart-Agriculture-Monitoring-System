@@ -3,6 +3,7 @@ export const metadata = {
   description: 'Professional IoT dashboard for farmers',
 };
 
+import './globals.css';
 import { AuthProvider } from './context/AuthContext';
 import ServiceWorkerRegister from './components/ServiceWorkerRegister';
 

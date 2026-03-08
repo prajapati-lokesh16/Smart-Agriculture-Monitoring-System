@@ -12,14 +12,14 @@ export default function RegisterPage() {
   const { register, user } = useAuth();
 
   if (user) {
-    router.push('/');
+    router.push('/dashboard');
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await register(email, password);
-      router.push('/');
+      router.push('/dashboard');
     } catch (err) {
       setError(err.message);
     }
